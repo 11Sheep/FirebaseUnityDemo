@@ -97,7 +97,11 @@ public class GameController : MonoBehaviour {
 
         userRT.anchoredPosition = new Vector2(newBoardPositionX, newBoardPositionY);
 
-        FirebaseUtils.Instance.SetUserLocation(xLocation, yLocation);
+        // Only if it's us update the server
+        if (userRT == UserGamePlayer)
+        {
+            FirebaseUtils.Instance.SetUserLocation(xLocation, yLocation);
+        }
     }
 
     private void OnUserLocationUpdate(object obj)

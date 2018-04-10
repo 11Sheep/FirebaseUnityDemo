@@ -10,6 +10,7 @@ public class EventManagerScript : Singleton<EventManagerScript>
 
     public const string EVENT__ANONYMOUS_LOGIN_RESULT = "event_anonymousLoginResult";
     public const string EVENT__USER_LOCATION_UPDATED = "event_userLocationUpdated";
+    public const string EVENT__BLOCK_USER = "event_blockUser";    
 
     public class FloatEvent : UnityEvent<object> {} //empty class; just needs to exist
 

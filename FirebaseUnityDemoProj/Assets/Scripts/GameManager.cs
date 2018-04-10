@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour {
     public GameController MyGameController;
     public GameObject SigninCanvas;
     public GameObject GameCanvas;
+    public GameObject BlockUserCanvas;
 
     public Button SigninButton;
 	
@@ -15,6 +16,10 @@ public class GameManager : MonoBehaviour {
         Debug.Log("Hello app :-)");
 
         GameCanvas.SetActive(false);
+
+        BlockUserCanvas.SetActive(false);
+
+        EventManagerScript.Instance.StartListening(EventManagerScript.EVENT__BLOCK_USER, OnUserBlocked);
 
         // Initialize firebase
         FirebaseUtils.Instance.Initialize();
@@ -51,4 +56,11 @@ public class GameManager : MonoBehaviour {
             Debug.Log("Signin did not succeed");
         }
     }
+
+    private void OnUserBlocked(object obj)
+    {
+        // Show the blocked user canvas
+        BlockUserCanvas.SetActive(true);
+    }
+        
 }

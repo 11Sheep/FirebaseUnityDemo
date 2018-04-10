@@ -2,6 +2,7 @@
 using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections;
 #if UNITY_IOS
@@ -41,59 +42,62 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
 
         mDatabaseRef = FirebaseDatabase.DefaultInstance.RootReference;
 
-        /*
-        //Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
 
-        //Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
-
-        
-
-        Firebase.RemoteConfig.FirebaseRemoteConfig.FetchAsync(System.TimeSpan.Zero).ContinueWith(FetchComplete);
-        */
+        Firebase.RemoteConfig.FirebaseRemoteConfig.FetchAsync(System.TimeSpan.Zero).ContinueWith(FetchComplete);        
     }
 
     public void SignInAnonumous()
     {
-        mAuth.SignInAnonymouslyAsync().ContinueWith(task => {
-            if (task.IsCanceled)
+        if (mAuth.CurrentUser == null)
+        {
+            mAuth.SignInAnonymouslyAsync().ContinueWith(task =>
             {
-                Debug.LogError("SignInAnonymouslyAsync was canceled.");
-
-                mUser = null;
-
-                EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, "canceled");
-            }
-            else if (task.IsFaulted)
-            {
-                mUser = null;
-
-                EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, ("error: " + task.Exception));
-            }
-            else
-            {
-                mUser = task.Result;
-
-                Debug.LogFormat("User signed in successfully: {0} ({1})", mUser.DisplayName, mUser.UserId);
-                               
-                mUser.TokenAsync(true).ContinueWith(task2 =>
+                if (task.IsCanceled)
                 {
-                    if (task2.IsCanceled)
-                    {
-                        EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, "TokenAsync was canceled.");
-                    }
-                    else if (task2.IsFaulted)
-                    {
-                        EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, ("TokenAsync encountered an error: " + task.Exception));
-                    }
-                    else
-                    {
-                        mUserIdToken = task2.Result;
+                    Debug.LogError("SignInAnonymouslyAsync was canceled.");
 
-                        EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, null);
-                    }
-                });
-            }
-        });
+                    mUser = null;
+
+                    EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, "canceled");
+                }
+                else if (task.IsFaulted)
+                {
+                    mUser = null;
+
+                    EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, ("error: " + task.Exception));
+                }
+                else
+                {
+                    mUser = task.Result;
+
+                    Debug.LogFormat("User signed in successfully: {0} ({1})", mUser.DisplayName, mUser.UserId);
+
+                    mUser.TokenAsync(true).ContinueWith(task2 =>
+                    {
+                        if (task2.IsCanceled)
+                        {
+                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, "TokenAsync was canceled.");
+                        }
+                        else if (task2.IsFaulted)
+                        {
+                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, ("TokenAsync encountered an error: " + task.Exception));
+                        }
+                        else
+                        {
+                            mUserIdToken = task2.Result;
+
+                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, null);
+                        }
+                    });
+                }
+            });
+        }
+        else
+        {
+            Debug.Log("We are already signed in!");
+
+            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, null);
+        }
     }
 
     public void SetUserLocation(int x, int y)
@@ -112,6 +116,7 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
     public void StartGettingUsersLocations()
     {
         FirebaseDatabase.DefaultInstance.GetReference("users").ChildChanged += OnUserChanged;
+        FirebaseDatabase.DefaultInstance.GetReference("users").ChildAdded += OnUserChanged;
     }
 
     void OnUserChanged(object sender, ChildChangedEventArgs args)
@@ -137,8 +142,7 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
             EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__USER_LOCATION_UPDATED, userData);
         }
     }
-
-    /*
+    
     void FetchComplete(Task fetchTask)
     {
        if (fetchTask.IsCompleted)
@@ -155,17 +159,16 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
                     // Verify that this value exists
                     if ((cv.Source != Firebase.RemoteConfig.ValueSource.StaticValue) && !string.IsNullOrEmpty(cv.StringValue))
                     {
-                        GameManager.Instance.playerData.blockUser.blockUser = cv.BooleanValue;
+                        bool blockUser = cv.BooleanValue;
+
+                        if (blockUser)
+                        {
+                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__BLOCK_USER, null);
+                        }
                     }      
-
-                    GameManager.Instance.SaveData();
-
-                    EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__SERVER_TRANSACTION_FINISHED, null);
                 }
             }
 
         }
     }
-    */
-
 }
