@@ -21,8 +21,6 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
     private Firebase.Auth.FirebaseAuth mAuth;
     private Firebase.Auth.FirebaseUser mUser;
 
-    private string mUserIdToken;
-
     protected FirebaseUtils()
     {
     }
@@ -72,23 +70,7 @@ public class FirebaseUtils : Singleton<FirebaseUtils> {
 
                     Debug.LogFormat("User signed in successfully: {0} ({1})", mUser.DisplayName, mUser.UserId);
 
-                    mUser.TokenAsync(true).ContinueWith(task2 =>
-                    {
-                        if (task2.IsCanceled)
-                        {
-                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, "TokenAsync was canceled.");
-                        }
-                        else if (task2.IsFaulted)
-                        {
-                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, ("TokenAsync encountered an error: " + task.Exception));
-                        }
-                        else
-                        {
-                            mUserIdToken = task2.Result;
-
-                            EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, null);
-                        }
-                    });
+                    EventManagerScript.Instance.TriggerEvent(EventManagerScript.EVENT__ANONYMOUS_LOGIN_RESULT, null);
                 }
             });
         }
